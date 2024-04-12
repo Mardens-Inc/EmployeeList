@@ -1,31 +1,36 @@
 <?php
+require_once $_SERVER['DOCUMENT_ROOT'] . "/vendor/autoload.php";
+$file = $_SERVER['DOCUMENT_ROOT'] . "/config.json";
+if (!file_exists($file)) {
+    die(json_encode(["error" => "Config file not found!"]));
+}
+$json = json_decode(file_get_contents($file), true);
+try {
+    $hash = @$json["hash"];
+} catch (Exception $e) {
+    $hash = null;
+}
+
 // Database configuration
-$DB_HOST = "127.0.0.1";
-$DB_USER = "root";
-$DB_PASSWORD = "";
-$DB_NAME = "";
+$DB_HOST = $json["host"];
+$DB_USER = $json["user"];
+$DB_PASSWORD = $json["password"];
+$DB_NAME = $json["database"];
 
 if (!isset($_ENV["HASH_SALT"]) || $_ENV["HASH_SALT"] == "") {
     // Hash salt
-    if (!file_exists("hash")) {
-        createGuid();
+    if ($hash == null || $hash == "") {
+        $guid = @getGUID();
+
+        $json["hash"] = $guid;
+        $file = $_SERVER['DOCUMENT_ROOT'] . "/config.json";
+        file_put_contents($file, json_encode($json, JSON_PRETTY_PRINT));
+        $_ENV["HASH_SALT"] = $guid;
     } else {
-        $guid = file_get_contents("hash");
-        if ($guid == "") {
-            unlink("hash");
-            createGuid();
-        } else {
-            $_ENV["HASH_SALT"] = $guid;
-        }
+        $_ENV["HASH_SALT"] = $hash;
     }
 }
 
-function createGuid()
-{
-    $guid = getGUID();
-    file_put_contents("hash", $guid);
-    $_ENV["HASH_SALT"] = $guid;
-}
 
 function getGUID()
 {
