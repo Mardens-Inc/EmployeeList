@@ -25,5 +25,8 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="lqh1adb" level="application" />
+    <orderEntry type="library" name="@types/jquery" level="application" />
+    <orderEntry type="library" name="popup" level="application" />
+    <orderEntry type="library" name="loading" level="application" />
   </component>
 </module>
