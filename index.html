@@ -48,8 +48,11 @@
         </g>
     </svg>
     <h1>Employee List</h1>
-    <input type="search" id="emp-search" placeholder="Employee Name" autocomplete="off" autofocus>
-    <button id="discounts"> <i class="fa fa-tags"></i> <span class="text">View Discounts</span></button>
+    <input type="search" id="emp-search" placeholder="Employee Name" autocomplete="off" autofocus style="margin-bottom: 1rem;">
+    <div class="row center vertical">
+        <button id="discounts"><i class="fa fa-tags"></i> <span class="text">View Discounts</span></button>
+        <a href="https://fm.mardens.com/fmi/webd/EmployeeSearch?homeurl=https://fm.mardens.com/returns/index.html" id="old-db" target="_blank"> <img src="https://fm.mardens.com/returns/employee.png" alt=""> <span class="text">Old Database</span></a>
+    </div>
 </nav>
 <main>
     <table>
@@ -67,5 +70,6 @@
 </main>
 <footer><p>&copy; <span class="year">2024</span> Marden's Inc. All Rights Reserved</footer>
 <script src="/assets/js/search.min.js" type="module"></script>
+<script src="/assets/js/upload.js" type="module"></script>
 </body>
 </html>
