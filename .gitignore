@@ -4,3 +4,5 @@ composer.lock
 logs/
 /node_modules
 /.vite
+.htaccess
+.user.ini
