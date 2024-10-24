@@ -1,4 +1,5 @@
 use calamine::{DataType, Reader, Xlsx};
+use log::info;
 use sqlx::MySqlPool;
 use std::error::Error;
 use std::path::Path;
@@ -57,24 +58,42 @@ pub async fn import_from_excel_file(path: impl AsRef<Path>) -> Result<u32, Box<d
 {
 	let pool = create_connection().await?;
 	let mut workbook: Xlsx<_> = calamine::open_workbook(path)?;
-	let range = workbook.worksheet_range("Sheet1")?;
+	let range = workbook.worksheet_range("report")?;
 	let mut count = 0;
-	for row in range.rows() {
-		let id = row[0].get_string().unwrap().parse::<i32>()?;
+	for row in range.rows().skip(2) {
+		let id = row[0].get_string().unwrap();
 		let first_name = row[1].get_string().unwrap();
 		let last_name = row[2].get_string().unwrap();
 		let location = row[3].get_string().unwrap();
 
-		sqlx::query(
-			"INSERT INTO employees (id, first_name, last_name, location) VALUES (?, ?, ?, ?)"
-		)
-			.bind(id)
-			.bind(first_name)
-			.bind(last_name)
-			.bind(location)
-			.execute(&pool)
-			.await?;
+		info!("Importing employee: {} {} {} {}", id, first_name, last_name, location);
+
+//		sqlx::query(
+//			"INSERT INTO employees (id, first_name, last_name, location) VALUES (?, ?, ?, ?)"
+//		)
+//			.bind(id)
+//			.bind(first_name)
+//			.bind(last_name)
+//			.bind(location)
+//			.execute(&pool)
+//			.await?;
 		count += 1;
 	}
 	Ok(count)
+}
+
+pub async fn remove_employees() -> Result<(), Box<dyn Error>> {
+	let pool = create_connection().await?;
+	sqlx::query("DELETE FROM employees where location != 'krdp'")
+		.execute(&pool)
+		.await?;
+	Ok(())
+}
+
+pub async fn remove_krdp() -> Result<(), Box<dyn Error>> {
+	let pool = create_connection().await?;
+	sqlx::query("DELETE FROM employees where location = 'krdp'")
+		.execute(&pool)
+		.await?;
+	Ok(())
 }
