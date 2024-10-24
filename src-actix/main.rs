@@ -1,4 +1,5 @@
 mod employees_database;
+mod employees_endpoint;
 
 use actix_web::{get, middleware, web, App, Error, HttpRequest, HttpResponse, HttpServer, Responder};
 use awc::Client;
@@ -11,6 +12,13 @@ use serde_json::json;
 async fn main() -> std::io::Result<()> {
 	std::env::set_var("RUST_LOG", "trace");
 	env_logger::init();
+	match employees_database::initialize_db().await {
+		Ok(_) => info!("Database initialized"),
+		Err(err) => {
+			info!("Failed to initialize database: {}", err);
+			return Ok(());
+		}
+	}
 
 	let port = 1420; // Port to listen on
 	let config = if cfg!(debug_assertions) {
@@ -33,7 +41,11 @@ async fn main() -> std::io::Result<()> {
 						).into()
 					})
 			)
-			.service(web::scope("api").service(status));
+			.service(web::scope("api")
+				.service(employees_endpoint::get_employees)
+				.service(employees_endpoint::search_employees)
+				.service(employees_endpoint::import_from_excel_file)
+			);
 
 		// Add conditional routing based on the config
 		if config == "development" {
