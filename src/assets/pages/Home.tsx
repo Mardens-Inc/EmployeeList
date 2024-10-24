@@ -55,8 +55,8 @@ export default function Home()
                 </TableHeader>
                 <TableBody emptyContent={"No Results Found!"}>
                     {pageItems.map((e) => (
-                        <TableRow key={e.employee_id}>
-                            <TableCell>{e.employee_id}</TableCell>
+                        <TableRow key={e.id}>
+                            <TableCell>{e.id}</TableCell>
                             <TableCell className={"capitalize"}>{e.first_name.toLowerCase()}</TableCell>
                             <TableCell className={"capitalize"}>{e.last_name.toLowerCase()}</TableCell>
                             <TableCell>{e.location}</TableCell>
@@ -64,14 +64,16 @@ export default function Home()
                     ))}
                 </TableBody>
             </Table>
-            <Pagination
-                total={totalPages}
-                onChange={setCurrentPage}
-                page={currentPage}
-                showControls
-                showShadow
-                className={"mx-auto mt-4"}
-            />
+            {(employees.length > itemsPerPage) &&
+                <Pagination
+                    total={totalPages}
+                    onChange={setCurrentPage}
+                    page={currentPage}
+                    showControls
+                    showShadow
+                    className={"mx-auto mt-4"}
+                />
+            }
         </div>
     );
 }
