@@ -1,5 +1,4 @@
 use calamine::{DataType, Reader, Xlsx};
-use log::info;
 use sqlx::MySqlPool;
 use std::error::Error;
 use std::path::Path;
@@ -59,27 +58,27 @@ pub async fn import_from_excel_file(path: impl AsRef<Path>) -> Result<u32, Box<d
 	let pool = create_connection().await?;
 	let mut workbook: Xlsx<_> = calamine::open_workbook(path)?;
 	let range = workbook.worksheet_range("report")?;
-	let mut count = 0;
-	for row in range.rows().skip(2) {
-		let id = row[0].get_string().unwrap();
-		let first_name = row[1].get_string().unwrap();
-		let last_name = row[2].get_string().unwrap();
-		let location = row[3].get_string().unwrap();
 
-		info!("Importing employee: {} {} {} {}", id, first_name, last_name, location);
+	for row in range.rows().skip(1) {
+		if row.is_empty() {
+			continue;
+		}
+		let id: u64 = row[0].get_float().ok_or("Missing id")?.round() as u64;
+		let first_name = row[1].get_string().ok_or("Missing first name")?;
+		let last_name = row[2].get_string().ok_or("Missing last name")?;
+		let location = row[3].get_string().ok_or("Missing location")?;
 
-//		sqlx::query(
-//			"INSERT INTO employees (id, first_name, last_name, location) VALUES (?, ?, ?, ?)"
-//		)
-//			.bind(id)
-//			.bind(first_name)
-//			.bind(last_name)
-//			.bind(location)
-//			.execute(&pool)
-//			.await?;
-		count += 1;
+		sqlx::query(
+			"INSERT INTO employees (id, first_name, last_name, location) VALUES (?, ?, ?, ?)"
+		)
+			.bind(id)
+			.bind(first_name)
+			.bind(last_name)
+			.bind(location)
+			.execute(&pool)
+			.await?;
 	}
-	Ok(count)
+	Ok((range.rows().count() - 1) as u32)
 }
 
 pub async fn remove_employees() -> Result<(), Box<dyn Error>> {
