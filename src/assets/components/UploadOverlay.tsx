@@ -10,6 +10,19 @@ export default function UploadOverlay()
 
     useEffect(() =>
     {
+        const mardensDropArea = $("#mardens-employees-drop-area");
+        const krdpDropArea = $("#krdp-employees-list-drop-area");
+
+        $(document).off("dragover");
+        $(document).off("dragexit");
+        mardensDropArea.off("dragover");
+        mardensDropArea.off("dragexit");
+        mardensDropArea.off("drop");
+        krdpDropArea.off("dragover");
+        krdpDropArea.off("dragexit");
+        krdpDropArea.off("drop");
+
+
         $(document).on("dragover", (e) =>
         {
             e.preventDefault();
@@ -18,11 +31,12 @@ export default function UploadOverlay()
         {
             setIsDragging(false);
         });
-        $("#mardens-employees-drop-area").on("dragover", (e) =>
+
+        mardensDropArea.on("dragover", (e) =>
         {
             e.preventDefault();
             setIsDraggingOverEmployees(true);
-        }).on("dragend", () =>
+        }).on("dragexit", () =>
         {
             setIsDraggingOverEmployees(false);
         }).on("drop", (e) =>
@@ -33,7 +47,7 @@ export default function UploadOverlay()
             console.log(e);
         });
 
-        $("#krdp-employees-list-drop-area").on("dragover", (e) =>
+        krdpDropArea.on("dragover", (e) =>
         {
             e.preventDefault();
             setisDraggingOverKRDP(true);
@@ -48,6 +62,7 @@ export default function UploadOverlay()
                 setIsDragging(false);
                 console.log(e);
             });
+
 
     }, []);
 
