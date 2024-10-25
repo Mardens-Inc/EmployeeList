@@ -11,12 +11,12 @@ export default class Employees
 {
     static async list(): Promise<Employee[]>
     {
-        return $.get("/api/employees");
+        return $.get("/api/");
     }
 
     static async search(query: string, signal: AbortSignal): Promise<Employee[]>
     {
-        const response = await fetch(`/api/employees/search?query=${encodeURIComponent(query)}`, {
+        const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`, {
             signal: signal
         });
         return await response.json() as Employee[];
