@@ -1,8 +1,13 @@
 mod employees_database;
 mod employees_endpoint;
 
+use actix_files::file_extension_to_mime;
+use actix_web::error::ErrorInternalServerError;
 use actix_web::{get, middleware, web, App, Error, HttpRequest, HttpResponse, HttpServer, Responder};
+use actix_web::dev::Service;
+use actix_web::http::header::ACCESS_CONTROL_ALLOW_HEADERS;
 use awc::Client;
+use awc::http::header::ACCESS_CONTROL_ALLOW_ORIGIN;
 use futures_util::stream::StreamExt;
 use include_dir::{include_dir, Dir};
 use log::info;
@@ -30,6 +35,16 @@ async fn main() -> std::io::Result<()> {
 	let server = HttpServer::new(move || {
 		let app = App::new()
 			.wrap(middleware::Logger::default())
+			.wrap_fn(|req, srv| {
+				// disable cors
+				let fut = srv.call(req);
+				async {
+					let mut res = fut.await?;
+					res.headers_mut().insert(ACCESS_CONTROL_ALLOW_HEADERS, "*".parse().unwrap());
+					res.headers_mut().insert(ACCESS_CONTROL_ALLOW_ORIGIN, "*".parse().unwrap());
+					Ok(res)
+				}
+			})
 			.app_data(
 				web::JsonConfig::default()
 					.limit(4096)
@@ -45,6 +60,8 @@ async fn main() -> std::io::Result<()> {
 				.service(employees_endpoint::get_employees)
 				.service(employees_endpoint::search_employees)
 				.service(employees_endpoint::import_from_excel_file)
+				.service(employees_endpoint::import_from_excel_file_krdp)
+				.service(employees_endpoint::get_employee)
 			);
 
 		// Add conditional routing based on the config
@@ -60,7 +77,7 @@ async fn main() -> std::io::Result<()> {
 			   )
 		} else {
 			app.default_service(web::route().to(index))
-			   .service(web::resource("/assets/{file:.*}").route(web::get().to(index)))
+			   .service(web::scope("assets/{file}").service(assets))
 		}
 	})
 		.workers(4)
@@ -102,9 +119,20 @@ async fn index(_req: HttpRequest) -> Result<impl Responder, Error> {
 		let body = file.contents();
 		return Ok(HttpResponse::Ok().content_type("text/html").body(body));
 	}
-	Err(actix_web::error::ErrorInternalServerError("Failed to find index.html"))
+	Err(ErrorInternalServerError("Failed to find index.html"))
 }
-
+#[get("")]
+async fn assets(file: web::Path<String>) -> impl Responder {
+	if let Some(file) = WWWROOT.get_file(format!("assets/{}", file.as_str())) {
+		let body = file.contents();
+		return Ok(HttpResponse::Ok()
+			.content_type(file_extension_to_mime(
+				file.path().extension().unwrap().to_str().unwrap(),
+			))
+			.body(body));
+	}
+	Err(ErrorInternalServerError(format!("Failed to find {}", file)))
+}
 /// Proxies requests to the Vite development server.
 ///
 /// This function forwards incoming requests to a local Vite server running on port 3000.
@@ -169,18 +197,4 @@ async fn proxy_to_vite(req: HttpRequest, mut payload: web::Payload) -> Result<Ht
 	}
 
 	Ok(res.body(resp_body_bytes))
-}
-
-/// Handles requests to check the server status.
-///
-/// This endpoint responds to GET requests with a JSON object indicating
-/// that the server is running correctly. It can be used for health checks
-/// or monitoring server status.
-///
-/// # Returns
-///
-/// A JSON object with a `status` field set to "ok".
-#[get("/")]
-async fn status() -> impl Responder {
-	HttpResponse::Ok().json(json!({ "status": "ok" }))
 }
