@@ -34,14 +34,48 @@ async fn create_connection() -> Result<MySqlPool, Box<dyn Error>> {
 	Ok(pool)
 }
 
-pub async fn get_employees() -> Result<Vec<Employee>, Box<dyn Error>> {
+#[derive(Debug, serde::Serialize)]
+pub struct EmployeeResponse {
+	employees: Vec<Employee>,
+	last_page: u32,
+	count: usize,
+}
+
+pub async fn get_employees(page: u32, limit: u32) -> Result<EmployeeResponse, Box<dyn Error>> {
 	let pool = create_connection().await?;
+	let offset = page * limit;
+
+	// Get employees with pagination
 	let employees = sqlx::query_as::<_, Employee>(
-		"SELECT id, first_name, last_name, location FROM employees"
+		"SELECT id, first_name, last_name, location FROM employees LIMIT ? OFFSET ?"
 	)
+		.bind(limit as i64)
+		.bind(offset as i64)
 		.fetch_all(&pool)
 		.await?;
-	Ok(employees)
+
+	// Get total count of employees
+	let total_count: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM employees")
+		.fetch_one(&pool)
+		.await?;
+
+	let last_page = (total_count.0 as f64 / limit as f64).ceil() as u32;
+	let count = employees.len();
+
+	Ok(EmployeeResponse {
+		employees,
+		last_page,
+		count,
+	})
+}
+
+pub async fn get_employee(id: i32) -> Result<Employee, Box<dyn Error>> {
+	let pool = create_connection().await?;
+	let employee = sqlx::query_as::<_, Employee>("SELECT * FROM employees WHERE id = ?")
+		.bind(id)
+		.fetch_one(&pool)
+		.await?;
+	Ok(employee)
 }
 
 pub async fn search_employees(query: impl AsRef<str>) -> Result<Vec<Employee>, Box<dyn Error>> {
