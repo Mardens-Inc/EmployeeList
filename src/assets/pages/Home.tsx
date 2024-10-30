@@ -9,7 +9,6 @@ export default function Home()
     const [employees, setEmployees] = useState<Employee[]>([]);
     const [currentPage, setCurrentPage] = useState<number>(1);
     const [totalPages, setTotalPages] = useState<number>(1);
-    const [pageItems, setPageItems] = useState<Employee[]>([]);
     const {search} = useSearch();
     const itemsPerPage = 30;
     let abortController = new AbortController();
@@ -23,18 +22,12 @@ export default function Home()
             const signal = abortController.signal;
             if (currentPage !== 1) setCurrentPage(1);
             Employees.search(search, signal).then(setEmployees);
-        } else Employees.list().then(setEmployees);
-    }, [search]);
-
-    useEffect(() =>
-    {
-        setTotalPages(Math.ceil(employees.length / itemsPerPage));
-    }, [employees, itemsPerPage]);
-
-    useEffect(() =>
-    {
-        setPageItems(employees.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage));
-    }, [currentPage, employees, itemsPerPage]);
+        } else Employees.list(itemsPerPage, currentPage).then(res =>
+        {
+            setEmployees(res.employees);
+            setTotalPages(res.last_page);
+        });
+    }, [search, currentPage]);
 
     return (
         <div className={"m-8 relative flex flex-col justify-center"}>
@@ -54,7 +47,7 @@ export default function Home()
                     <TableColumn key={"location"} aria-label="Location">Location</TableColumn>
                 </TableHeader>
                 <TableBody emptyContent={"No Results Found!"}>
-                    {pageItems.map((e) => (
+                    {employees.map((e) => (
                         <TableRow key={e.id}>
                             <TableCell>{e.id}</TableCell>
                             <TableCell className={"capitalize"}>{e.first_name.toLowerCase()}</TableCell>
@@ -64,16 +57,14 @@ export default function Home()
                     ))}
                 </TableBody>
             </Table>
-            {(employees.length > itemsPerPage) &&
-                <Pagination
-                    total={totalPages}
-                    onChange={setCurrentPage}
-                    page={currentPage}
-                    showControls
-                    showShadow
-                    className={"mx-auto mt-4"}
-                />
-            }
+            <Pagination
+                total={totalPages}
+                onChange={setCurrentPage}
+                page={currentPage}
+                showControls
+                showShadow
+                className={"mx-auto mt-4"}
+            />
         </div>
     );
 }
