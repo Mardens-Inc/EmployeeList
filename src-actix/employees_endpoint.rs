@@ -27,6 +27,17 @@ pub async fn get_employees(query: web::Query<GetEmployeesQueryOptions>) -> Resul
 	Ok(HttpResponse::Ok().json(employees))
 }
 
+#[get("/all")]
+pub async fn get_all_employees() -> Result<HttpResponse, Error> {
+	let employees = employees_database::get_all_employees().await.map_err(|err| {
+		actix_web::error::ErrorInternalServerError(format!(
+			"Failed to get employees: {}",
+			err
+		))
+	})?;
+	Ok(HttpResponse::Ok().json(employees))
+}
+
 #[get("/{id}")]
 pub async fn get_employee(id: web::Path<String>) -> Result<HttpResponse, Error> {
 	let employee = employees_database::get_employee(id.into_inner().parse().unwrap()).await.map_err(|err| {
