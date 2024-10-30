@@ -1,0 +1,15 @@
+[Unit]
+Description=Employees Database API
+StartLimitIntervalSec=0
+After=network.target
+
+[Service]
+Type=exec
+Restart=always
+RestartSec=1
+User=administrator
+WorkingDirectory=/www/wwwroot/employees.mardens.com/
+ExecStart=/www/wwwroot/employees.mardens.com/employees-database
+
+[Install]
+WantedBy=multi-user.target
