@@ -1,11 +1,23 @@
 use crate::employees_database;
 use actix_web::{get, post, web, Error, HttpResponse};
 use log::info;
+use serde_json::json;
 use std::collections::HashMap;
 
+#[derive(serde::Deserialize)]
+struct GetEmployeesQueryOptions {
+	page: Option<u32>,
+	limit: Option<u32>,
+}
+
 #[get("/")]
-pub async fn get_employees() -> Result<HttpResponse, Error> {
-	let employees = employees_database::get_employees().await.map_err(|err| {
+pub async fn get_employees(query: web::Query<GetEmployeesQueryOptions>) -> Result<HttpResponse, Error> {
+	let (page, limit) = match (query.page, query.limit) {
+		(Some(page), Some(limit)) => (page, limit),
+		_ => (1, 10),
+	};
+
+	let employees = employees_database::get_employees(page, limit).await.map_err(|err| {
 		actix_web::error::ErrorInternalServerError(format!(
 			"Failed to get employees: {}",
 			err
@@ -13,6 +25,17 @@ pub async fn get_employees() -> Result<HttpResponse, Error> {
 	})?;
 
 	Ok(HttpResponse::Ok().json(employees))
+}
+
+#[get("/{id}")]
+pub async fn get_employee(id: web::Path<String>) -> Result<HttpResponse, Error> {
+	let employee = employees_database::get_employee(id.into_inner().parse().unwrap()).await.map_err(|err| {
+		actix_web::error::ErrorInternalServerError(format!(
+			"Failed to get employee: {}",
+			err
+		))
+	})?;
+	Ok(HttpResponse::Ok().json(employee))
 }
 
 #[get("/search")]
@@ -65,8 +88,9 @@ pub async fn import_from_excel_file(body: web::Bytes) -> Result<HttpResponse, Er
 		))
 	})?;
 
-	Ok(HttpResponse::Ok().json(format!("Imported {} employees", count)))
+	Ok(HttpResponse::Ok().json(json!({"count": count})))
 }
+
 #[post("/import/krdp")]
 pub async fn import_from_excel_file_krdp(body: web::Bytes) -> Result<HttpResponse, Error> {
 	let path = "krdp.xlsx";
@@ -99,5 +123,5 @@ pub async fn import_from_excel_file_krdp(body: web::Bytes) -> Result<HttpRespons
 		))
 	})?;
 
-	Ok(HttpResponse::Ok().json(format!("Imported {} employees", count)))
+	Ok(HttpResponse::Ok().json(json!({"count": count} )))
 }
