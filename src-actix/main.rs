@@ -59,6 +59,7 @@ async fn main() -> std::io::Result<()> {
 			.service(web::scope("api")
 				.service(employees_endpoint::get_employees)
 				.service(employees_endpoint::search_employees)
+				.service(employees_endpoint::get_all_employees)
 				.service(employees_endpoint::import_from_excel_file)
 				.service(employees_endpoint::import_from_excel_file_krdp)
 				.service(employees_endpoint::get_employee)
