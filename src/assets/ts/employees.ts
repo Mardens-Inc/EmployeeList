@@ -7,11 +7,18 @@ export type Employee = {
     location: string;
 }
 
+export type EmployeeResponse = {
+    count: number;
+    last_page: number;
+    employees: Employee[];
+
+}
+
 export default class Employees
 {
-    static async list(): Promise<Employee[]>
+    static async list(limit: number, page: number): Promise<EmployeeResponse>
     {
-        return $.get("/api/");
+        return $.get(`/api/?limit=${limit}&page=${page}`);
     }
 
     static async search(query: string, signal: AbortSignal): Promise<Employee[]>
@@ -22,9 +29,12 @@ export default class Employees
         return await response.json() as Employee[];
     }
 
-    static async upload(file: File): Promise<void>
+    static async upload(file: File): Promise<number>
     {
-        return $.ajax({
+        type Result = {
+            count: number;
+        }
+        const result: Result = await $.ajax({
             url: "/api/import",
             method: "POST",
             "headers": {
@@ -33,10 +43,17 @@ export default class Employees
             data: file,
             contentType: false,
             processData: false
-        });
+        }) as Result;
+
+        return result.count;
     }
-    static async upload_krdp(file: File): Promise<void>{
-        return $.ajax({
+
+    static async upload_krdp(file: File): Promise<number>
+    {
+        type Result = {
+            count: number;
+        }
+        const result: Result = await $.ajax({
             url: "/api/import/krdp",
             method: "POST",
             "headers": {
@@ -45,7 +62,9 @@ export default class Employees
             data: file,
             contentType: false,
             processData: false
-        });
+        }) as Result;
+
+        return result.count;
     }
 
 }
