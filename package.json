@@ -12,7 +12,8 @@
     "build-api": "cargo build --release",
     "run-api": "cargo run --bin employees-database",
     "build-frontend": "tsc && vite build",
-    "watch-api": "cargo watch -x \"run --bin employees-database\" -C target/dev-env -N --why -w ../../src-actix"
+    "watch-api": "cargo watch -x \"run --bin employees-database\" -C target/dev-env -N --why -w ../../src-actix",
+    "build": "npm run build-frontend && npm run build-api"
   },
   "dependencies": {
     "@nextui-org/react": "^2.4.6",
