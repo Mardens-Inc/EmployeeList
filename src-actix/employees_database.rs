@@ -78,6 +78,14 @@ pub async fn get_employee(id: i32) -> Result<Employee, Box<dyn Error>> {
 	Ok(employee)
 }
 
+pub async fn get_all_employees() -> Result<Vec<Employee>, Box<dyn Error>> {
+	let pool = create_connection().await?;
+	let employees = sqlx::query_as::<_, Employee>("SELECT * FROM employees")
+		.fetch_all(&pool)
+		.await?;
+	Ok(employees)
+}
+
 pub async fn search_employees(query: impl AsRef<str>) -> Result<Vec<Employee>, Box<dyn Error>> {
 	let pool = create_connection().await?;
 	let employees = sqlx::query_as::<_, Employee>("select * from employees where concat_ws(' ',lower(first_name), lower(last_name), lower(location), lower(id)) like ?")
