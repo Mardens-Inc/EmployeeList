@@ -1,6 +1,6 @@
 [package]
 name = "employees-database"
-version = "0.0.0"
+version = "0.0.1"
 description = "A list of employees"
 edition = "2021"
 build = "src-actix/build.rs"
@@ -11,7 +11,6 @@ path = "src-actix/main.rs"
 
 [dependencies]
 actix-web = { version = "4.9.0" }
-actix-ws = "0.3.0"
 actix-files = "0.6.6"
 futures-util = "0.3.30"
 serde = { version = "1.0.208", features = ["derive"] }
@@ -23,9 +22,8 @@ awc = "3.1.0"
 log = "0.4.22"
 sqlx = { version = "0.8.2", features = ["mysql", "runtime-tokio"] }
 calamine = "0.26.1"
+filemaker-lib = { git = "https://github.com/Drew-Chase/filemaker-lib.git" }
 
 [build-dependencies]
-cargo-watch = "8.5.2"
 include_dir = "0.7.4"
 walkdir = "2.5.0"
-npm_rs = "1.0.0"
