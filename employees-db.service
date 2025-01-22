@@ -9,7 +9,7 @@ Restart=always
 RestartSec=1
 User=administrator
 WorkingDirectory=/www/wwwroot/employees.mardens.com/
-ExecStart=/www/wwwroot/employees.mardens.com/employees-database
+ExecStart=/home/administrator/.local/bin/employees-database
 
 [Install]
 WantedBy=multi-user.target
