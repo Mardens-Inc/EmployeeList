@@ -20,8 +20,13 @@ export default function Home()
             abortController.abort();
             abortController = new AbortController();
             const signal = abortController.signal;
-            if (currentPage !== 1) setCurrentPage(1);
-            Employees.search(search, signal).then(setEmployees);
+            // if (currentPage !== 1) setCurrentPage(1);
+            Employees.search(search, signal).then(employees =>
+            {
+                setEmployees(employees);
+                setTotalPages(1);
+            });
+
         } else Employees.list(itemsPerPage, currentPage).then(res =>
         {
             setEmployees(res.employees);
@@ -35,9 +40,9 @@ export default function Home()
             <Table
                 aria-label={"Employees Table"}
                 isHeaderSticky
-                className={"max-h-[calc(100dvh_-_190px)] overflow-auto"}
+                className={"max-h-[calc(100dvh_-_190px)]  overflow-auto"}
                 classNames={{
-                    wrapper: "rounded-lg shadow-lg bg-neutral-200 dark:bg-[#18181b]"
+                    wrapper: "rounded-lg shadow-lg bg-neutral-200 dark:bg-[#18181b] h-[100dvh]"
                 }}
             >
                 <TableHeader>
@@ -57,14 +62,16 @@ export default function Home()
                     ))}
                 </TableBody>
             </Table>
-            <Pagination
-                total={totalPages}
-                onChange={setCurrentPage}
-                page={currentPage}
-                showControls
-                showShadow
-                className={"mx-auto mt-4"}
-            />
+            {totalPages === 1 ? null :
+                <Pagination
+                    total={totalPages}
+                    onChange={setCurrentPage}
+                    page={currentPage}
+                    showControls
+                    showShadow
+                    className={"mx-auto mt-4"}
+                />
+            }
         </div>
     );
 }
