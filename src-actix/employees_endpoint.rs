@@ -1,7 +1,7 @@
 use crate::employees_database;
 use actix_web::{get, post, web, Error, HttpResponse};
 use filemaker_lib::Filemaker;
-use log::info;
+use log::{error, info};
 use serde_json::{json, Value};
 use std::collections::HashMap;
 
@@ -118,13 +118,18 @@ pub async fn import_from_excel_file(body: web::Bytes) -> Result<HttpResponse, Er
         let employee_id = employee.id;
         let first_name = employee.first_name;
         let last_name = employee.last_name;
+        let location = employee.location;
 
         record.insert("employee_ID".to_string(), Value::Number(employee_id.into()));
         record.insert("First".to_string(), Value::String(first_name));
         record.insert("Last".to_string(), Value::String(last_name));
-        fm.add_record(record).await.map_err(|err| {
-            actix_web::error::ErrorInternalServerError(format!("Failed to add record: {}", err))
-        })?;
+        record.insert("LocationNum".to_string(), Value::String(location));
+        
+        if let Err(e) = fm.add_record(record.clone()).await
+        {
+            error!("Unable to insert record: {:?} - {}", record, e);
+            return Err(actix_web::error::ErrorInternalServerError(format!("Unable to insert record: {:?} - {}", record, e)))
+        }
     }
 
     std::fs::remove_file(path).map_err(|err| {
