@@ -1,0 +1,20 @@
+meta {
+  name: Import
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{url}}/api/import
+  body: multipartForm
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  ~Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+}
+
+body:multipart-form {
+  file: @file()
+}

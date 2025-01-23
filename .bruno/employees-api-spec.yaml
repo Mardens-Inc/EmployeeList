@@ -1,0 +1,54 @@
+openapi: 3.0.0
+info:
+  title: employees-api-spec
+  version: 1.0.0
+paths:
+  '{{url}}/api/':
+    get:
+      summary: Get
+      operationId: Get
+      description: ''
+      tags:
+        - ''
+      responses:
+        '200':
+          description: ''
+  undefined: {}
+  '{{url}}/api/search?q=Drew Chase':
+    get:
+      summary: Search
+      operationId: Search
+      description: ''
+      tags:
+        - ''
+      responses:
+        '200':
+          description: ''
+      parameters:
+        - name: q
+          in: query
+          description: ''
+          required: true
+          example: Drew Chase
+servers: []
+components:
+  schemas:
+    import:
+      type: object
+      properties:
+        file:
+          type: array
+          items:
+            type: string
+          properties:
+            '0':
+              type: string
+  requestBodies:
+    import:
+      content:
+        'multipart/form-data:':
+          schema:
+            $ref: '#/components/schemas/import'
+      description: ''
+      required: true
+  securitySchemes: {}
