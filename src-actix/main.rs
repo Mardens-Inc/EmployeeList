@@ -2,13 +2,14 @@ mod asset_endpoint;
 mod employees_database;
 mod employees_endpoint;
 
-use crate::asset_endpoint::{start_vite_server, AppConfig};
+use crate::asset_endpoint::AppConfig;
 use actix_web::dev::Service;
 use actix_web::http::header::ACCESS_CONTROL_ALLOW_HEADERS;
 use actix_web::{middleware, web, App, HttpResponse, HttpServer};
 use awc::http::header::ACCESS_CONTROL_ALLOW_ORIGIN;
 use log::info;
 use serde_json::json;
+use vite_actix::start_vite_server;
 
 pub static DEBUG: bool = cfg!(debug_assertions);
 #[actix_web::main]

@@ -23,6 +23,7 @@ log = "0.4.22"
 sqlx = { version = "0.8.2", features = ["mysql", "runtime-tokio"] }
 calamine = "0.26.1"
 filemaker-lib = { git = "https://github.com/Drew-Chase/filemaker-lib.git" }
+vite-actix = "0.1.2"
 
 [build-dependencies]
 include_dir = "0.7.4"
