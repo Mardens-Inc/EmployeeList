@@ -1,6 +1,6 @@
 import {useEffect, useState} from "react";
 import $ from "jquery";
-import {Button, cn, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Spinner} from "@nextui-org/react";
+import {Button, cn, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Spinner} from "@heroui/react";
 import Employees from "../ts/employees.ts";
 
 export default function UploadOverlay()
@@ -103,7 +103,7 @@ export default function UploadOverlay()
                                 <p>{uploadCount} Employees Uploaded</p>
                             </ModalBody>
                             <ModalFooter>
-                                <Button onClick={onClose}>Close</Button>
+                                <Button onPress={onClose}>Close</Button>
                             </ModalFooter>
                         </>
                     )}

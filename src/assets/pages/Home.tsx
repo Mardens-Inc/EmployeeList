@@ -1,4 +1,4 @@
-import {Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow} from "@nextui-org/react";
+import {Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow} from "@heroui/react";
 import Employees, {Employee} from "../ts/employees.ts";
 import {useEffect, useState} from "react";
 import {useSearch} from "../providers/SearchProvider.tsx";
@@ -40,6 +40,7 @@ export default function Home()
             <Table
                 aria-label={"Employees Table"}
                 isHeaderSticky
+                removeWrapper
                 className={"max-h-[calc(100dvh_-_190px)]  overflow-auto"}
                 classNames={{
                     wrapper: "rounded-lg shadow-lg bg-neutral-200 dark:bg-[#18181b] h-[100dvh]"
