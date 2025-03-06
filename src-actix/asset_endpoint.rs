@@ -5,14 +5,6 @@ use actix_web::{get, web, App, Error, HttpRequest, HttpResponse, Responder};
 use include_dir::{include_dir, Dir};
 use vite_actix::ViteAppFactory;
 
-// The maximum payload size allowed for forwarding requests and responses.
-//
-// This constant defines the maximum size (in bytes) for the request and response payloads
-// when proxying. Any payload exceeding this size will result in an error.
-//
-// Currently, it is set to 1 GB.
-const MAX_PAYLOAD_SIZE: usize = 1024 * 1024 * 1024; // 1 GB
-
 // Static directory including all files under `target/wwwroot`.
 //
 // This static directory is used to embed files into the binary at compile time.
@@ -51,7 +43,6 @@ async fn assets(file: web::Path<String>) -> impl Responder {
     }
     Err(ErrorInternalServerError(format!("Failed to find {}", file)))
 }
-
 
 pub trait AppConfig {
     fn configure_routes(self) -> Self;
