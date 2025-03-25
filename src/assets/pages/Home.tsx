@@ -55,7 +55,7 @@ export default function Home()
                 <TableBody emptyContent={"No Results Found!"}>
                     {employees.map((e) => (
                         <TableRow key={e.id}>
-                            <TableCell>{e.id}</TableCell>
+                            <TableCell>{e.id.toString().padStart(6, "0")}</TableCell>
                             <TableCell className={"capitalize"}>{e.first_name.toLowerCase()}</TableCell>
                             <TableCell className={"capitalize"}>{e.last_name.toLowerCase()}</TableCell>
                             <TableCell>{e.location}</TableCell>
