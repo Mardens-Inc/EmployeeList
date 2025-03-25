@@ -7,13 +7,15 @@ use actix_web::dev::Service;
 use actix_web::http::header::ACCESS_CONTROL_ALLOW_HEADERS;
 use actix_web::{middleware, web, App, HttpResponse, HttpServer};
 use awc::http::header::ACCESS_CONTROL_ALLOW_ORIGIN;
+use database_common_lib::database_connection::DatabaseConnectionData;
+use database_common_lib::http_error::Result;
 use log::info;
 use serde_json::json;
 use vite_actix::start_vite_server;
 
 pub static DEBUG: bool = cfg!(debug_assertions);
 #[actix_web::main]
-async fn main() -> std::io::Result<()> {
+async fn main() -> Result<()> {
     std::env::set_var("RUST_LOG", "debug");
     env_logger::init();
     match employees_database::initialize_db().await {
@@ -23,6 +25,8 @@ async fn main() -> std::io::Result<()> {
             return Ok(());
         }
     }
+
+    let config_data = web::Data::new(DatabaseConnectionData::get().await?);
 
     let port = 1420; // Port to listen on
     let config = if cfg!(debug_assertions) {
@@ -58,6 +62,7 @@ async fn main() -> std::io::Result<()> {
                         .into()
                     }),
             )
+            .app_data(config_data.clone())
             .service(web::scope("api").configure(employees_endpoint::configure));
         app.configure_routes()
     })
@@ -67,8 +72,9 @@ async fn main() -> std::io::Result<()> {
 
     // Start the Vite server in development mode
     if DEBUG {
+        std::env::set_var("VITE_PORT", "1120");
         start_vite_server().expect("Failed to start vite server");
     }
     info!("Starting {} server at http://127.0.0.1:{}...", config, port);
-    server.await
+    Ok(server.await?)
 }

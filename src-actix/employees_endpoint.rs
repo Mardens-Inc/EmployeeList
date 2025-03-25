@@ -1,9 +1,10 @@
-use crate::employees_database;
+use crate::{employees_database, DEBUG};
 use actix_web::{get, post, web, Error, HttpResponse};
 use filemaker_lib::Filemaker;
 use log::{error, info};
 use serde_json::{json, Value};
 use std::collections::HashMap;
+use database_common_lib::database_connection::DatabaseConnectionData;
 
 #[derive(serde::Deserialize)]
 struct GetEmployeesQueryOptions {
@@ -73,7 +74,7 @@ pub async fn search_employees(
 }
 
 #[post("/import")]
-pub async fn import_from_excel_file(body: web::Bytes) -> Result<HttpResponse, Error> {
+pub async fn import_from_excel_file(body: web::Bytes, config: web::Data<DatabaseConnectionData>) -> Result<HttpResponse, Error> {
     let path = "employees.xlsx";
     let bytes = body.to_vec();
     std::fs::write(path, bytes).map_err(|err| {
@@ -98,37 +99,43 @@ pub async fn import_from_excel_file(body: web::Bytes) -> Result<HttpResponse, Er
             ))
         })?;
 
-    std::env::set_var("FM_URL", "https://fm.mardens.com/fmi/data/vLatest");
-    let fm = Filemaker::new("admin", "19MRCC77!", "EmployeeSearch", "Employees")
-        .await
-        .map_err(|err| {
-            actix_web::error::ErrorInternalServerError(format!(
-                "Failed to connect to FileMaker: {}",
-                err
-            ))
-        })?;
-    fm.clear_database().await.map_err(|err| {
-        actix_web::error::ErrorInternalServerError(format!("Failed to clear database: {}", err))
-    })?;
-
-    let employees = employees_database::get_all_employees().await?;
-
-    for employee in employees {
-        let mut record = HashMap::new();
-        let employee_id = employee.id;
-        let first_name = employee.first_name;
-        let last_name = employee.last_name;
-        let location = employee.location;
-
-        record.insert("employee_ID".to_string(), Value::Number(employee_id.into()));
-        record.insert("First".to_string(), Value::String(first_name));
-        record.insert("Last".to_string(), Value::String(last_name));
-        record.insert("LocationNum".to_string(), Value::String(location));
+    if !DEBUG {
+        // Filemaker.
+        std::env::set_var("FM_URL", "https://fm.mardens.com/fmi/data/vLatest");
         
-        if let Err(e) = fm.add_record(record.clone()).await
-        {
-            error!("Unable to insert record: {:?} - {}", record, e);
-            return Err(actix_web::error::ErrorInternalServerError(format!("Unable to insert record: {:?} - {}", record, e)))
+        let fm = Filemaker::new(config.filemaker.username.as_str(), config.filemaker.password.as_str(), "EmployeeSearch", "Employees")
+            .await
+            .map_err(|err| {
+                actix_web::error::ErrorInternalServerError(format!(
+                    "Failed to connect to FileMaker: {}",
+                    err
+                ))
+            })?;
+        fm.clear_database().await.map_err(|err| {
+            actix_web::error::ErrorInternalServerError(format!("Failed to clear database: {}", err))
+        })?;
+
+        let employees = employees_database::get_all_employees().await?;
+
+        for employee in employees {
+            let mut record = HashMap::new();
+            let employee_id = employee.id;
+            let first_name = employee.first_name;
+            let last_name = employee.last_name;
+            let location = employee.location;
+
+            record.insert("employee_ID".to_string(), Value::Number(employee_id.into()));
+            record.insert("First".to_string(), Value::String(first_name));
+            record.insert("Last".to_string(), Value::String(last_name));
+            record.insert("LocationNum".to_string(), Value::String(location));
+
+            if let Err(e) = fm.add_record(record.clone()).await {
+                error!("Unable to insert record: {:?} - {}", record, e);
+                return Err(actix_web::error::ErrorInternalServerError(format!(
+                    "Unable to insert record: {:?} - {}",
+                    record, e
+                )));
+            }
         }
     }
 
