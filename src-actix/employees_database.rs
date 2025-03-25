@@ -47,7 +47,7 @@ pub async fn get_employees(page: u32, limit: u32) -> Result<EmployeeResponse, Bo
 
 	// Get employees with pagination
 	let employees = sqlx::query_as::<_, Employee>(
-		"SELECT id, first_name, last_name, location FROM employees LIMIT ? OFFSET ?"
+		"SELECT * FROM employees LIMIT ? OFFSET ?"
 	)
 		.bind(limit as i64)
 		.bind(offset as i64)
@@ -59,7 +59,7 @@ pub async fn get_employees(page: u32, limit: u32) -> Result<EmployeeResponse, Bo
 		.fetch_one(&pool)
 		.await?;
 
-	let last_page = (total_count.0 as f64 / limit as f64).ceil() as u32;
+	let last_page = (total_count.0 as f64 / limit as f64).floor() as u32;
 	let count = employees.len();
 
 	Ok(EmployeeResponse {
@@ -100,26 +100,41 @@ pub async fn import_from_excel_file(path: impl AsRef<Path>) -> Result<u32, Box<d
 	let pool = create_connection().await?;
 	let mut workbook: Xlsx<_> = calamine::open_workbook(path)?;
 	let range = workbook.worksheet_range("report")?;
+	let rows: Vec<_> = range.rows().skip(1).collect();
+	let chunk_size = 50;
 
-	for row in range.rows().skip(1) {
-		if row.is_empty() {
-			continue;
+	for chunks in rows.chunks(chunk_size) {
+		let mut query = String::from("INSERT INTO employees (id, first_name, last_name, location) VALUES ");
+		let mut bindings: Vec<String> = Vec::new();
+
+		for (index, chunk) in chunks.iter().enumerate() {
+			if chunk.is_empty() {
+				continue;
+			}
+
+			let id: u64 = chunk[0].get_float().ok_or("Missing id")?.round() as u64;
+			let first_name = chunk[1].get_string().ok_or("Missing first name")?.to_string();
+			let last_name = chunk[2].get_string().ok_or("Missing last name")?.to_string();
+			let location = chunk[3].get_string().ok_or("Missing location")?.to_string();
+
+			if index > 0 {
+				query.push_str(", ");
+			}
+			query.push_str("(?, ?, ?, ?)");
+			bindings.push(id.to_string());
+			bindings.push(first_name);
+			bindings.push(last_name);
+			bindings.push(location);
 		}
-		let id: u64 = row[0].get_float().ok_or("Missing id")?.round() as u64;
-		let first_name = row[1].get_string().ok_or("Missing first name")?;
-		let last_name = row[2].get_string().ok_or("Missing last name")?;
-		let location = row[3].get_string().ok_or("Missing location")?;
 
-		sqlx::query(
-			"INSERT INTO employees (id, first_name, last_name, location) VALUES (?, ?, ?, ?)"
-		)
-			.bind(id)
-			.bind(first_name)
-			.bind(last_name)
-			.bind(location)
-			.execute(&pool)
-			.await?;
+		let mut query_builder = sqlx::query(&query);
+		for binding in bindings {
+			query_builder = query_builder.bind(binding);
+		}
+
+		query_builder.execute(&pool).await?;
 	}
+
 	Ok((range.rows().count() - 1) as u32)
 }
 
