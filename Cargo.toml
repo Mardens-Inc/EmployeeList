@@ -1,6 +1,6 @@
 [package]
 name = "employees-database"
-version = "0.0.1"
+version = "0.0.2"
 description = "A list of employees"
 edition = "2021"
 build = "src-actix/build.rs"

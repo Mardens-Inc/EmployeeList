@@ -1,1 +1,1 @@
-pwp -j 192.168.21.209 -u administrator -a C:\Users\drew.chase\.ssh\mss-sshkey_ossh.key -s employees-db --binary employees-database --build-command "npm run build" --build
+pwp -H 192.168.21.209 -u administrator -a C:\Users\drew.chase\.ssh\mss-sshkey_ossh.key -s employees-db --binary employees-database -BIStc "npm run build"
