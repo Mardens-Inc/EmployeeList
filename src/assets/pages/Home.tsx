@@ -47,7 +47,7 @@ export default function Home()
                 }}
             >
                 <TableHeader>
-                    <TableColumn key={"id"} aria-label="Employee ID">Employee ID</TableColumn>
+                    <TableColumn key={"id"} aria-label="Employee ID" hidden>Employee ID</TableColumn>
                     <TableColumn key={"firstName"} aria-label="First Name">First Name</TableColumn>
                     <TableColumn key={"lastName"} aria-label="Last Name">Last Name</TableColumn>
                     <TableColumn key={"location"} aria-label="Location">Location</TableColumn>
@@ -55,7 +55,7 @@ export default function Home()
                 <TableBody emptyContent={"No Results Found!"}>
                     {employees.map((e) => (
                         <TableRow key={e.id}>
-                            <TableCell>{e.id.toString().padStart(6, "0")}</TableCell>
+                            <TableCell hidden>{e.id.toString().padStart(6, "0")}</TableCell>
                             <TableCell className={"capitalize"}>{e.first_name.toLowerCase()}</TableCell>
                             <TableCell className={"capitalize"}>{e.last_name.toLowerCase()}</TableCell>
                             <TableCell>{e.location}</TableCell>
